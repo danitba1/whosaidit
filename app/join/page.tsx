@@ -28,7 +28,14 @@ export default function JoinPage() {
       >
         <div>
           <Label htmlFor="code">Game code</Label>
-          <Input id="code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} autoCapitalize="characters" />
+          <Input
+            id="code"
+            value={code}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+          />
         </div>
         {error && <p className="text-sm text-danger">{error}</p>}
         <Button className="w-full" size="lg" type="submit">

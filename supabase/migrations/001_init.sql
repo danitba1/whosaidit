@@ -70,7 +70,7 @@ create table if not exists public.games (
   presentation_hint text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint game_code_format check (game_code ~ '^[A-Z0-9]{4,8}$'),
+  constraint game_code_format check (game_code ~ '^[0-9]{4,8}$'),
   constraint timer_duration_valid check (
     timer_duration_seconds is null
     or (timer_duration_seconds >= 5 and timer_duration_seconds <= 600)

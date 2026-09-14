@@ -23,13 +23,13 @@ begin
     return;
   end if;
 
-  delete from public.games where game_code = 'DEMO01';
+  delete from public.games where game_code in ('DEMO01', '000001');
 
   insert into public.games (
     id, game_code, name, welcome_message, status, created_by
   ) values (
     game_id,
-    'DEMO01',
+    '000001',
     'Who Said It? Demo (fictional)',
     'This is fictional seed data for local testing. Submit extra facts or use the prepared ones.',
     'COLLECTING_FACTS',
@@ -53,5 +53,5 @@ begin
   insert into public.scores (game_id, participant_id)
   select game_id, id from public.participants where game_id = game_id;
 
-  raise notice 'Inserted fictional DEMO01 game for facilitator %', fac_id;
+  raise notice 'Inserted fictional 000001 game for facilitator %', fac_id;
 end $$;

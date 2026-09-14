@@ -12,8 +12,8 @@ export const displayNameSchema = trimmed(NAME_MIN, NAME_MAX);
 export const factTextSchema = trimmed(FACT_MIN, FACT_MAX);
 export const gameCodeSchema = z
   .string()
-  .transform((v) => sanitizeText(v).toUpperCase())
-  .pipe(z.string().regex(/^[A-Z0-9]{4,8}$/));
+  .transform((v) => sanitizeText(v).replace(/\s+/g, ""))
+  .pipe(z.string().regex(/^[0-9]{4,8}$/));
 
 export const createGameSchema = z.object({
   name: trimmed(2, 80),

@@ -69,7 +69,7 @@ Never prefix the service role key with `NEXT_PUBLIC_`.
 2. SQL → run `supabase/migrations/001_init.sql`
 3. Database → Replication: `games` is added to `supabase_realtime` by the migration
 4. Create a facilitator: sign up at `/admin/login`, or Authentication → Add user
-5. Optional fictional demo: run `supabase/seed.sql` after at least one facilitator exists. It creates game code `DEMO01` with Maya, Daniel, Alex, Noor, and Sam. **All seed content is fictional.**
+5. Optional fictional demo: run `supabase/seed.sql` after at least one facilitator exists. It creates game code `000001` with Maya, Daniel, Alex, Noor, and Sam. **All seed content is fictional.**
 
 ### Row Level Security
 
@@ -103,8 +103,10 @@ Coverage includes scoring, status transitions, vote rules, timer math, public au
 ## Deployment (Vercel + Supabase)
 
 1. Push this repo and import it in Vercel
-2. Set the same environment variables in Vercel (Production + Preview)
-3. `NEXT_PUBLIC_APP_URL` must be the deployed HTTPS origin
+2. Set **all four** environment variables in Vercel (Production + Preview). The three
+   `NEXT_PUBLIC_*` ones are also needed at build time, so add them before deploying and
+   redeploy after any change — missing values make every server action fail
+3. `NEXT_PUBLIC_APP_URL` must be the deployed HTTPS origin, not `localhost`
 4. Apply the SQL migration on the production Supabase project
 5. Enable Realtime on `public.games` if the migration’s publication block did not run
 6. Create a facilitator account on production
@@ -158,11 +160,12 @@ Shortcuts on the control screen: Space reveal, ← → facts, R random, V voting
 
 | Symptom | What to check |
 | --- | --- |
-| `fetch failed` on sign-in / any server action | Corporate TLS inspection. Node rejects the intercepting root CA that Windows trusts (`SELF_SIGNED_CERT_IN_CHAIN`). This repo ships `.npmrc` with `node-options=--use-system-ca`, which makes Node use the OS certificate store. Run scripts through `npm run …` so it applies |
+| `fetch failed` on sign-in / any server action, locally | Corporate TLS inspection. Node rejects the intercepting root CA that the OS trusts (`SELF_SIGNED_CERT_IN_CHAIN`). Create a local, untracked `.npmrc` containing `node-options=--use-system-ca` and run scripts via `npm run …`. Requires Node 22.15+ or 24. Keep this out of git: on a Node 20 host it makes Node refuse to start |
+| Local dev server accepts connections but never responds | Hung dev process. Stop every `next dev`, delete `.next`, start one server with `npm run dev` |
 | “Missing SUPABASE…” | `.env.local` present and the dev server restarted |
 | `ENOTFOUND <something>.supabase.co` | A shell environment variable is overriding `.env.local`. Real process env wins over `.env` files in Next.js. Clear it (`Remove-Item env:NEXT_PUBLIC_SUPABASE_URL`) and restart |
 | Odd `.next/dev/types` syntax errors from `tsc` | Two dev servers wrote the generated route types at once. Stop all of them, delete `.next`, start a single server |
-| Invalid game code | Game exists; code is 4–8 letters/numbers |
+| Invalid game code | Game exists; code is 4–8 digits |
 | Submission closed | Status must be `COLLECTING_FACTS` |
 | No realtime updates | `games` in `supabase_realtime`; RLS allows select |
 | Duplicate name | Another player already uses that display name |
