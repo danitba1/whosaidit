@@ -4,7 +4,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppError, createGame, listGames } from "@/lib/services/game-engine";
+import { describeError } from "@/lib/services/privacy";
 import { createGameSchema } from "@/lib/validation/schemas";
+
+function fail(error: unknown) {
+  if (error instanceof AppError) return { error: error.message };
+  const detail = describeError(error);
+  console.error("[who-said-it] auth error:", detail);
+  if (detail.includes("Missing NEXT_PUBLIC_SUPABASE")) {
+    return {
+      error:
+        "This deployment is missing Supabase settings. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel, then Redeploy.",
+    };
+  }
+  return { error: "Could not reach the sign-in service. Please try again." };
+}
 
 async function requireUser() {
   const supabase = await createClient();
@@ -16,26 +30,34 @@ async function requireUser() {
 }
 
 export async function signInAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Invalid email or password." };
+  try {
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: "Invalid email or password." };
+  } catch (error) {
+    return fail(error);
+  }
   redirect("/admin/games");
 }
 
 export async function signUpAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
-  const displayName = String(formData.get("displayName") ?? "Facilitator");
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { display_name: displayName } },
-  });
-  if (error) return { error: error.message };
-  return { ok: true, message: "Check your email if confirmation is required, then sign in." };
+  try {
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const displayName = String(formData.get("displayName") ?? "Facilitator");
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName } },
+    });
+    if (error) return { error: error.message };
+    return { ok: true, message: "Check your email if confirmation is required, then sign in." };
+  } catch (error) {
+    return fail(error);
+  }
 }
 
 export async function signOutAction() {
