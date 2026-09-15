@@ -46,3 +46,4 @@ next-env.d.ts
 
 # leftover scaffold
 /who-said-it
+build.log

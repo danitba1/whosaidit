@@ -17,9 +17,14 @@ export default function LoginPage() {
         className="mt-8 space-y-4"
         action={async (formData) => {
           setError(null);
+          setInfo(null);
           const result = mode === "in" ? await signInAction(formData) : await signUpAction(formData);
-          if (result?.error) setError(result.error);
-          if (result && "message" in result) setInfo(result.message ?? null);
+          if (!result) return;
+          if ("error" in result && result.error) {
+            setError(result.error);
+            return;
+          }
+          if ("message" in result) setInfo(result.message);
         }}
       >
         {mode === "up" && (
